@@ -2,6 +2,7 @@
   "name": "tfmonitor",
   "version": "0.0.1",
   "description": "Automatically update and restart node applications when you push to GIT.",
+  "repository": "git://github.com/twofront/TF-Monitor",
   "author": "Thomas Baron",
   "license": "MIT",
   "main": "index.js",

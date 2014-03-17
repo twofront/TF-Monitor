@@ -1,8 +1,6 @@
 # TF Monitor (Work in Progress)
 
-**Note that everything below is a specification for our implimentation at this point and very little is actually implimented!**
-
-TF Monitor automatically restarts node applications when they crash or any file in their directory changes. Additionally, you can:
+TF Monitor automatically restarts node applications when they crash or any file in their directory changes. In the future you will be able to:
 
 - specify an application to launch on bootup
 - automatically update and restart your app whenever you push to GIT
@@ -20,17 +18,29 @@ TF Monitor uses a file called `Procfile` placed in your project folder to launch
 - start with a name followed by a colon
 - after the colon is the command to start your application
 
-Also note that a package.json with your applications name is also required.
+See the "Launch Application" section for example.
 
 ### Launch Application
 
 Run the following from your applications root folder:
 
+`nohup tfmonitor start web > /dev/null &`
+
+Or, if you want to run tfmonitor in the foreground so you can use ctrl-c to stop it use:
+
 `tfmonitor start web`
+
+Note that in the future this more basic command will do everything the complicated one will and you will use this to run in the foreground:
+
+`tfmonitor start web --foreground`
 
 Your `Procfile` for this example should look like:
 
 `web: node myapp.js`
+
+## Unimplemented Features
+
+**The following features are not yet implemented. This defines how we plan to make them work in the future!**
 
 ### Start Application On Boot
 
