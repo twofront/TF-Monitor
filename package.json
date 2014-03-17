@@ -1,0 +1,8 @@
+{
+  "name": "TFMonitor",
+  "version": "0.0.1",
+  "description": "Automatically update and restart node applications when you push to GIT.",
+  "author": "Thomas Baron",
+  "license": "MIT",
+  "engine": "node >= 0.4.1"
+}
