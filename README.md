@@ -61,3 +61,13 @@ First, make sure your application is fully setup to work with GIT. Try a `git pu
 Once this is working simply add `-git` to your `start` or `register` command like so:
 
 `tfmonitor register web -git`
+
+This will do a `git pull` once per hour. The advantage of this is you computer can be behind a firewall without any exposed ports. If this is not an issue, the better way to setup git is to use a "hook". Your hook should point to:
+
+http://YourIPOrURL:OpenPort/update
+
+Then use our `-githook [port]` command like in the following example:
+
+`tfmonitor register web -githook 8989`
+
+Note that tfmonitor will run a small web service on your chosen port and that the application tfmonitor runs cannot use the same port.
