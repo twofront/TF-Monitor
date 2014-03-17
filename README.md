@@ -2,7 +2,7 @@
 
 **Note that everything below is a specification for our implimentation at this point and very little is actually implimented!**
 
-TF Monitor automatically restarts node applications when they crash. Additionally, you can:
+TF Monitor automatically restarts node applications when they crash or any file in their directory changes. Additionally, you can:
 
 - specify an application to launch on bootup
 - automatically update and restart your app whenever you push to GIT

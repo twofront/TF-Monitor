@@ -1,13 +1,17 @@
 {
-	"name": "TFMonitor",
-	"version": "0.0.1",
-	"description": "Automatically update and restart node applications when you push to GIT.",
-	"author": "Thomas Baron",
-	"license": "MIT",
-	"main": "index.js",
-	"engine": "node >= 0.4.1",
-	"preferGlobal": "true",
-	"bin": {
-		"tfmonitor" : "index.js"
-	}
+  "name": "tfmonitor",
+  "version": "0.0.1",
+  "description": "Automatically update and restart node applications when you push to GIT.",
+  "author": "Thomas Baron",
+  "license": "MIT",
+  "main": "index.js",
+  "engine": "node >= 0.4.1",
+  "preferGlobal": "true",
+  "bin": {
+    "tfmonitor": "index.js"
+  },
+  "dependencies": {
+    "stdio": "~0.1.5",
+    "chokidar": "~0.8.1"
+  }
 }
