@@ -14,5 +14,35 @@
   "dependencies": {
     "stdio": "~0.1.5",
     "chokidar": "~0.8.1"
+  },
+  "jshintConfig": {
+    "camelcase": true,
+    "curly": false,
+    "eqeqeq": true,
+    "immed": true,
+    "latedef": "nofunc",
+    "newcap": true,
+    "noarg": true,
+    "noempty": true,
+    "nonew": true,
+    "plusplus": false,
+    "quotmark": "single",
+    "undef": true,
+    "unused": true,
+    "strict": false,
+    "trailing": true,
+    "maxparams": 4,
+    "maxdepth": 5,
+    "maxlen": 100,
+    "globalstrict": true,
+    "asi": false,
+    "eqnull": false,
+    "evil": false,
+    "laxbreak": false,
+    "laxcomma": false,
+    "loopfunc": true,
+    "devel": true,
+    "browser": true,
+    "node": true
   }
 }

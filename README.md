@@ -20,17 +20,15 @@ TF Monitor uses a file called `Procfile` placed in your project folder to launch
 
 See the "Launch Application" section for example.
 
+A `package.json` file with a valid `name` is also required.
+
 ### Launch Application
 
 Run the following from your applications root folder:
 
-`nohup tfmonitor start web > /dev/null &`
-
-Or, if you want to run tfmonitor in the foreground so you can use ctrl-c to stop it use:
-
 `tfmonitor start web`
 
-Note that in the future this more basic command will do everything the complicated one will and you will use this to run in the foreground:
+Or, if you want to run tfmonitor in the foreground so you can use ctrl-c to stop it use:
 
 `tfmonitor start web --foreground`
 
@@ -38,15 +36,19 @@ Your `Procfile` for this example should look like:
 
 `web: node myapp.js`
 
-## Unimplemented Features
-
-**The following features are not yet implemented. This defines how we plan to make them work in the future!**
-
 ### Start Application On Boot
 
 `tfmonitor register web`
 
-Note that this will also start your application immediately in the background.
+Note that your application will start on boot without using tfmonitor for restarting... This will change soon.
+
+### Remove Application From Boot
+
+`tfmonitor unregister web`
+
+## Unimplemented Features
+
+**The following features are not yet implemented. This defines how we plan to make them work in the future!**
 
 ### Show Running and Registered Applications
 
@@ -59,10 +61,6 @@ This will return a list of **running** applications and **registered** applicati
 `tfmonitor stop 123`
 
 Where 123 is the **running** id returned by `tfmonitor list`.
-
-### Remove Application From Boot
-
-`tfmonitor unregister web 123`
 
 ### Setup GIT
 

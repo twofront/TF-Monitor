@@ -2,94 +2,81 @@
 
 var stdio = require('stdio');
 var fs = require('fs');
-var child_process = require('child_process');
+var childProcess = require('child_process');
 
-var mainCommand = '';
-var commandOptions = [];
-var child = null;
+var daemon = require('./daemon.js');
+var infoGetter = require('./infoGetter.js');
+
+var appName = null;
+var cmdName = null;
+var cmdVal = null;
 
 // First get the command line options and arguements.
 var ops = stdio.getopt({
 		'git': {key: 'g', description: 'Pull from git hourly.'},
-		'githook': {key: 'h', args: 1, description: 'Pull from git when it changes via a hook.'},
+		'githook': {
+			key: 'h', args: 1,
+			description: 'Pull from git when it changes and notifies us via a hook.'
+		},
+		'foreground': {
+			key: 'f', description: 'Use with "start" to keep process running in the terminal.'
+		}
 	},
 	'[COMMAND] [SOMEID]'
 );
 
-if (!ops.args || ops.args.length != 2) {
+if (!ops.args || ops.args.length !== 2) {
 	console.log('Error: Command takes 2 arguments.');
 	return;
 }
 
-// For the `start` or `register` command we read the Procfile and
-// start the application.
-
-function _spawnApp() {
-	console.log('Starting app...');
-	child = child_process.spawn(mainCommand, commandOptions);
-	child.on('close', _spawnApp);
-}
-
-function _watchApp() {
-	fs.watch('.', function() {
-		console.log('File changed...');
-		child.kill('SIGHUP');
-	});
-}
-
-function _finishSetup(command) {
-	if (command) {
-		mainCommand = command.shift();
-		commandOptions = command;
-		_spawnApp();
-		_watchApp();
+// Unless we are using the list command we will need info from the package.json and
+// Procfile files in the folder this command was called from.
+if (ops.args[0] !== 'list') {
+	var info = infoGetter.get(ops.args[1]);
+	if (!info) {
+		console.log('Make sure you have Procfile and package.json files.');
+		return;
 	} else {
-		console.log('Error: "'+ops.args[1]+'" not found in "Procfile"!');
+		appName = info.appName;
+		cmdName = info.cmdName;
+		cmdVal = info.cmdVal;
 	}
 }
 
-function startApp() {
-	fs.readFile('./Procfile', function (err, data) {
-		data = data.toString();
-		if (err) throw err;
-		var lines = data.split('\n');
-		var command = null;
-		for (var i=0; i<lines.length; i++) {
-			// Here we use replace to get the various parts of our regex
-			// (not to actually replace anything)
-			lines[i].replace(/([a-zA-Z0-9_]*):[\s\t]*(.*)/, function(all, name, cmd) {
-				if (name === ops.args[1]) {
-					console.log(all);
-					command = cmd.split(/[\s\t]+/);
-					if (ops.args[0] === 'register') {
-						child_process.exec('crontab -l', function (err, stdout, stderr) {
-							if (err) throw err;
-							if (stderr) console.log('The "register" command requires crontab to be installed.');
-							var s = stdout.split('\n');
-							if (s[s.length-1] !== '') stdout += '\n';
-							stdout += '@reboot cd '+process.cwd().replace(' ', '\\ ')+'; '+cmd+'\n';
-							fs.writeFile('cron.tmp', stdout, function() {
-								child_process.exec('crontab cron.tmp', function() {
-									fs.unlink('cron.tmp', function() {
-										_finishSetup(command);
-									});
-								});
-							});
-						});
-					}
-				}
-			});
+/*	The following is the core implimentation of all the commands available
+	in TF Monitor.
+*/
+if (ops.args[0] === 'start') {
+	// Start spawns a whole new process, because we need it to run in a background
+	// process and not tie up the console.
+	var out = fs.openSync('/dev/null', 'a');
+	var err = fs.openSync('/dev/null', 'a');
+	if (ops.foreground) {
+		var child = childProcess.spawn(__dirname+'/start.js', [cmdName]);
+	} else {
+		var child = childProcess.spawn(__dirname+'/start.js', [cmdName], { detached: true, stdio: [ 'ignore', out, err ]  });
+		child.unref();
+	}
+} else if (ops.args[0] === 'register') {
+	daemon.addDaemon(
+		'cd '+process.cwd().replace(' ', '\\ ')+'; '+cmdVal+' #'+appName+':'+cmdName+'#',
+		function() {
+			console.log('Registered "'+cmdName+'" in app "'+appName+'".');
+			console.log('App will start on boot-up.');
 		}
-		if (ops.args[0] !== 'register') {
-			_finishSetup(command);
+	);
+} else if (ops.args[0] === 'unregister') {
+	daemon.removeDaemon('#'+appName+':'+cmdName+'#', function(err, removed) {
+		if (err) {
+			throw err;
+		} else if (!removed) {
+			console.log('Couldn\'t find anything to unregister.');
+		} else {
+			console.log('Unregistered "'+cmdName+'" in app "'+appName+'".');
+			console.log('App won\'t start on boot-up anymore.');
 		}
 	});
-}
-
-if (ops.args[0] === 'start' || ops.args[0] === 'register') {
-	startApp();
-} else if (ops.args[0] === 'unregister') {
-	console.log('The "unregister" command will be added soon!');
 } else {
 	console.log('Error: "'+ops.args[0]+'" not found. Remember, this utility is a WIP.');
 }
