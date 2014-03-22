@@ -55,17 +55,51 @@ if (ops.args[0] === 'start') {
 	var out = fs.openSync(ops.log ? 'tfmonitor.log' : '/dev/null', 'a');
 	var err = fs.openSync(ops.log ? 'tfmonitor.err' : '/dev/null', 'a');
 	if (ops.foreground) {
-		var child = childProcess.spawn(__dirname+'/start.js', [cmdName]);
+		var child = childProcess.spawn('/usr/local/bin/node', [__dirname+'/start.js', cmdName]);
 	} else {
 		var child = childProcess.spawn(
-			__dirname+'/start.js', [cmdName],
+			'/usr/local/bin/node', [__dirname+'/start.js', cmdName],
 			{ detached: true, stdio: [ 'ignore', out, err ]  }
 		);
 		child.unref();
 	}
+	// Now lets make a note that an instance of TF Monitor is running.
+	var j = [];
+	if (fs.existsSync('/tmp/tfmonitor.json')) {
+		var v = fs.readFileSync('/tmp/tfmonitor.json').toString();
+		j = JSON.parse(v);
+	}
+	j.push({
+		name: appName+'.'+cmdName,
+		pid: child.pid
+	});
+	fs.writeFileSync('/tmp/tfmonitor.json', JSON.stringify(j));
+} else if (ops.args[0] === 'stop') {
+	if (fs.existsSync('/tmp/tfmonitor.json')) {
+		var v = fs.readFileSync('/tmp/tfmonitor.json').toString();
+		var j = JSON.parse(v);
+		var found = false;
+		for (var i=0; i<j.length; i++) {
+			if (j[i].name === appName+'.'+cmdName) {
+				childProcess.exec('kill '+j[i].pid, function() {
+					console.log('Stopped instance.');
+				});
+				j.splice(i,1);
+				i--;
+				found = true;
+			}
+		}
+		if (!found) {
+			console.log('Program not running through TF Monitor.');
+		} else {
+			fs.writeFileSync('/tmp/tfmonitor.json', JSON.stringify(j));
+		}
+	} else {
+		console.log('Nothing is being monitored by TF Monitor.');
+	}
 } else if (ops.args[0] === 'register') {
 	tfmonitor.daemon.addDaemon(
-		'cd '+process.cwd().replace(' ', '\\ ')+'; '+cmdVal+' #'+appName+':'+cmdName+'#',
+		'cd '+process.cwd().replace(' ', '\\ ')+'; /usr/local/bin/node '+__dirname.replace(' ', '\\ ')+'/tfmonitor.js start '+cmdName+' #'+appName+':'+cmdName+'#',
 		function() {
 			console.log('Registered "'+cmdName+'" in app "'+appName+'".');
 			console.log('App will start on boot-up.');

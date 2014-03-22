@@ -38,6 +38,12 @@ Your `Procfile` for this example should look like:
 
 `web: node myapp.js`
 
+### Stop Application
+
+`tfmonitor stop web`
+
+Where web is the command name in your `Procfile`.
+
 ### Start Application On Boot
 
 `tfmonitor register web`
@@ -57,12 +63,6 @@ Note that your application will start on boot without using tfmonitor for restar
 `tfmonitor list`
 
 This will return a list of **running** applications and **registered** applications each with an id. If an application is running and registered to start on boot it will be listed in both lists. Make sure you use the correct id in the `unregister` and `stop` commands.
-
-### Stop Application
-
-`tfmonitor stop 123`
-
-Where 123 is the **running** id returned by `tfmonitor list`.
 
 ### Setup GIT
 

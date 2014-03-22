@@ -26,6 +26,7 @@ function spawnApp() {
 		d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()
 	);
 	child = childProcess.spawn(mainCommand, commandOptions);
+	child.on('error', restartApp);
 	child.on('close', restartApp);
 }
 
@@ -57,17 +58,39 @@ function watchApp() {
 	fs.watch('.', function(event, filename) {
 		// Ignore files ending in .log or .err
 		if (
-			//filename.indexOf('.log', filename.length-4) === -1 &&
+			filename.indexOf('.log', filename.length-4) === -1 &&
 			filename.indexOf('.err', filename.length-4) === -1 &&
 			filename.indexOf('.out', filename.length-4) === -1
 		) {
-			child.kill('SIGHUP');
+			child.kill('SIGTERM');
 		}
 	});
 }
 
+/*	## shutdown
+	Prepares to close TF Monitor.
+*/
+function shutdown() {
+	console.log('Shutting down gracefully...');
+	child.kill('SIGTERM');
+	process.exit();
+}
+
+// The code crashes on its own.
+// process.on("uncaughtException", shutdown);
+// The ctrl-c signal.
+process.on("SIGINT", shutdown);
+// The polite way to ask a program to shutdown. (kill uses this)
+process.on("SIGTERM", shutdown);
+
+// SIGQUIT is the ctrl-\ signal
+// SIGKILL is the forceful way to shutdown. (kill -9 uses this)
+// SIGHUP means the controlling terminal was closed.
+
 var command = info.cmdVal.split(/[\s\t]+/);
 mainCommand = command.shift();
+// On boot we need to pass the full path...
+if (mainCommand === 'node') mainCommand = '/usr/local/bin/node';
 commandOptions = command;
 spawnApp();
 watchApp();
