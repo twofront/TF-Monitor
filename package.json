@@ -9,11 +9,10 @@
   "engine": "node >= 0.4.1",
   "preferGlobal": "true",
   "bin": {
-    "tfmonitor": "index.js"
+    "tfmonitor": "bin/tfmonitor.js"
   },
   "dependencies": {
-    "stdio": "~0.1.5",
-    "chokidar": "~0.8.1"
+    "stdio": "~0.1.5"
   },
   "jshintConfig": {
     "camelcase": true,

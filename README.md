@@ -32,6 +32,8 @@ Or, if you want to run tfmonitor in the foreground so you can use ctrl-c to stop
 
 `tfmonitor start web --foreground`
 
+You may also enable logging for this command with the `--log` command line parameter. This is useful if you want to know when your application restarts or you want to see any errors thrown by TF Monitor (the software is still early in development, so don't rely on it in a production environment).
+
 Your `Procfile` for this example should look like:
 
 `web: node myapp.js`
