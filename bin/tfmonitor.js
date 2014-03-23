@@ -98,15 +98,17 @@ if (ops.args[0] === 'start') {
 		console.log('Nothing is being monitored by TF Monitor.');
 	}
 } else if (ops.args[0] === 'register') {
+	var tfm = __dirname + '/tfmonitor.js';
 	tfmonitor.daemon.addDaemon(
-		'cd '+process.cwd().replace(' ', '\\ ')+'; /usr/local/bin/node '+__dirname.replace(' ', '\\ ')+'/tfmonitor.js start '+cmdName+' #'+appName+':'+cmdName+'#',
+		appName+'.'+cmdName,
+		['/usr/local/bin/node', tfm, 'start', cmdName],
 		function() {
 			console.log('Registered "'+cmdName+'" in app "'+appName+'".');
 			console.log('App will start on boot-up.');
 		}
 	);
 } else if (ops.args[0] === 'unregister') {
-	tfmonitor.daemon.removeDaemon('#'+appName+':'+cmdName+'#', function(err, removed) {
+	tfmonitor.daemon.removeDaemon(appName+'.'+cmdName, function(err, removed) {
 		if (err) {
 			throw err;
 		} else if (!removed) {

@@ -1,5 +1,7 @@
 # TF Monitor (Work in Progress)
 
+**Note:** TF Monitor, at this point, isn't being written with Windows in mind. Only Linux and Mac OS. Also, we expect your system to have git, cron and node installed in the default locations.
+
 TF Monitor automatically restarts node applications when they crash or any file in their directory changes. In the future you will be able to:
 
 - specify an application to launch on bootup

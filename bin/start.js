@@ -90,7 +90,9 @@ process.on("SIGTERM", shutdown);
 var command = info.cmdVal.split(/[\s\t]+/);
 mainCommand = command.shift();
 // On boot we need to pass the full path...
-if (mainCommand === 'node') mainCommand = '/usr/local/bin/node';
+if (mainCommand === 'node') {
+	mainCommand = '/usr/local/bin/node';
+}
 commandOptions = command;
 spawnApp();
 watchApp();
