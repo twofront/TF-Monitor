@@ -56,15 +56,11 @@ Note that your application will start on boot without using tfmonitor for restar
 
 `tfmonitor unregister web`
 
-## Unimplemented Features
-
-**The following features are not yet implemented. This defines how we plan to make them work in the future!**
-
-### Show Running and Registered Applications
+### Show Running Applications
 
 `tfmonitor list`
 
-This will return a list of **running** applications and **registered** applications each with an id. If an application is running and registered to start on boot it will be listed in both lists. Make sure you use the correct id in the `unregister` and `stop` commands.
+This will return a list of **running** applications each with a pid and name. Note that the pid is for the tfmonitor process that is monitoring your appliction and not your application itself. If you kill this process it will not automatically restart like your application will.
 
 ### Setup GIT
 
@@ -74,7 +70,15 @@ Once this is working simply add `-git` to your `start` or `register` command lik
 
 `tfmonitor register web -git`
 
-This will do a `git pull` once per hour. The advantage of this is you computer can be behind a firewall without any exposed ports. If this is not an issue, the better way to setup git is to use a "hook". Your hook should point to:
+This will do a `git pull` once per hour. The advantage of this is your computer can be behind a firewall with no exposed ports. 
+
+## Unimplemented Features
+
+**The following features are not yet implemented. This defines how we plan to make them work in the future!**
+
+### Setup GIT Hook
+
+If your computer is not behind a firewall, or you have the ability to open ports, the better way to setup git is to use a "hook". Your hook should point to:
 
 http://YourIPOrURL:OpenPort/update
 

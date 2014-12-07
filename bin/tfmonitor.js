@@ -5,6 +5,11 @@ var fs = require('fs');
 var childProcess = require('child_process');
 var tfmonitor = require('../');
 
+var NODE = '/usr/local/bin/node';
+var TMP = '/tmp/tfmonitor.json';
+var MONITOR = __dirname + '/tfmonitor.js';
+var START = __dirname + '/start.js';
+
 var appName = null;
 var cmdName = null;
 var cmdVal = null;
@@ -27,7 +32,7 @@ var ops = stdio.getopt({
 	'[COMMAND] [SOMEID]'
 );
 
-if (!ops.args || ops.args.length !== 2) {
+if (!ops.args || (ops.args[0] === 'list' && ops.args.length !== 1) || (ops.args[0] !== 'list' && ops.args.length !== 2)) {
 	console.log('Error: Command takes 2 arguments.');
 	return;
 }
@@ -54,29 +59,33 @@ if (ops.args[0] === 'start') {
 	// process and not tie up the console.
 	var out = fs.openSync(ops.log ? 'tfmonitor.log' : '/dev/null', 'a');
 	var err = fs.openSync(ops.log ? 'tfmonitor.err' : '/dev/null', 'a');
+
+	var startCommand = [START, cmdName];
+	if (ops.git) startCommand.push('-g');
+
 	if (ops.foreground) {
-		var child = childProcess.spawn('/usr/local/bin/node', [__dirname+'/start.js', cmdName]);
+		var child = childProcess.spawn(NODE, startCommand);
 	} else {
 		var child = childProcess.spawn(
-			'/usr/local/bin/node', [__dirname+'/start.js', cmdName],
+			NODE, startCommand,
 			{ detached: true, stdio: [ 'ignore', out, err ]  }
 		);
 		child.unref();
 	}
 	// Now lets make a note that an instance of TF Monitor is running.
 	var j = [];
-	if (fs.existsSync('/tmp/tfmonitor.json')) {
-		var v = fs.readFileSync('/tmp/tfmonitor.json').toString();
+	if (fs.existsSync(TMP)) {
+		var v = fs.readFileSync(TMP).toString();
 		j = JSON.parse(v);
 	}
 	j.push({
 		name: appName+'.'+cmdName,
 		pid: child.pid
 	});
-	fs.writeFileSync('/tmp/tfmonitor.json', JSON.stringify(j));
+	fs.writeFileSync(TMP, JSON.stringify(j));
 } else if (ops.args[0] === 'stop') {
-	if (fs.existsSync('/tmp/tfmonitor.json')) {
-		var v = fs.readFileSync('/tmp/tfmonitor.json').toString();
+	if (fs.existsSync(TMP)) {
+		var v = fs.readFileSync(TMP).toString();
 		var j = JSON.parse(v);
 		var found = false;
 		for (var i=0; i<j.length; i++) {
@@ -92,16 +101,21 @@ if (ops.args[0] === 'start') {
 		if (!found) {
 			console.log('Program not running through TF Monitor.');
 		} else {
-			fs.writeFileSync('/tmp/tfmonitor.json', JSON.stringify(j));
+			fs.writeFileSync(TMP, JSON.stringify(j));
 		}
 	} else {
 		console.log('Nothing is being monitored by TF Monitor.');
 	}
 } else if (ops.args[0] === 'register') {
-	var tfm = __dirname + '/tfmonitor.js';
+	// We run MONITOR rather than START because START does not write to TMP on its own.
+	// Other functions, like writing log files, will also only occur when START
+	// is run through MONITOR.
+	var startCommand = [NODE, MONITOR, 'start', cmdName];
+	if (ops.git) startCommand.push('-g');
+
 	tfmonitor.daemon.addDaemon(
 		appName+'.'+cmdName,
-		['/usr/local/bin/node', tfm, 'start', cmdName],
+		startCommand,
 		function() {
 			console.log('Registered "'+cmdName+'" in app "'+appName+'".');
 			console.log('App will start on boot-up.');
@@ -118,6 +132,17 @@ if (ops.args[0] === 'start') {
 			console.log('App won\'t start on boot-up anymore.');
 		}
 	});
+} else if (ops.args[0] === 'list') {
+	var j = [];
+	if (fs.existsSync(TMP)) {
+		var v = fs.readFileSync(TMP).toString();
+		j = JSON.parse(v);
+		for (var i=0; i<j.length; i++) {
+			console.log(j[i].pid + '        ' + j[i].name);
+		}
+	} else {
+		console.log('No processes being monitored!');
+	}
 } else {
 	console.log('Error: "'+ops.args[0]+'" not found. Remember, this utility is a WIP.');
 }

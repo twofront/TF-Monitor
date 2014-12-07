@@ -13,7 +13,9 @@ var child = null;
 var launchWait = null;
 var waitTime = 1.0;
 
-var ops = stdio.getopt({});
+var ops = stdio.getopt({
+	'git': {key: 'g'}
+});
 
 var info = tfmonitor.procfile.getCommand(ops.args[0]);
 if (!info) return;
@@ -67,6 +69,16 @@ function watchApp() {
 	});
 }
 
+function gitPull() {
+	console.log('Pulling from GIT.');
+	childProcess.exec('git pull', function(error, stdout, stderr) {
+		console.log('----------------------------');
+		console.log(stdout);
+		console.log('----------------------------');
+		setTimeout(gitPull, 1000*60*60);
+	});
+}
+
 /*	## shutdown
 	Prepares to close TF Monitor.
 */
@@ -96,3 +108,4 @@ if (mainCommand === 'node') {
 commandOptions = command;
 spawnApp();
 watchApp();
+if (ops.git) gitPull();
