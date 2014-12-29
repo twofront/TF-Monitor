@@ -19,7 +19,10 @@ var ops = stdio.getopt({
 		'git': {key: 'g', description: 'Pull from git hourly.'},
 		'githook': {
 			key: 'h', args: 1,
-			description: 'Pull from git when it changes and notifies us via a hook.'
+			description: 'UNIMPLEMENTED Pull from git when it changes and notifies us via a hook.'
+		},
+		'install': {
+			key: 'i', description: 'Runs npm install command before restarting program when file changes are detected.'
 		},
 		'foreground': {
 			key: 'f', description: 'Use with "start" to keep process running in the terminal.'
@@ -62,9 +65,13 @@ if (ops.args[0] === 'start') {
 
 	var startCommand = [START, cmdName];
 	if (ops.git) startCommand.push('-g');
+	if (ops.install) startCommand.push('-i');
 
 	if (ops.foreground) {
-		var child = childProcess.spawn(NODE, startCommand);
+		var child = childProcess.spawn(
+			NODE, startCommand,
+			{stdio: [ 'ignore', out, err ]}
+		);
 	} else {
 		var child = childProcess.spawn(
 			NODE, startCommand,
@@ -112,6 +119,7 @@ if (ops.args[0] === 'start') {
 	// is run through MONITOR.
 	var startCommand = [NODE, MONITOR, 'start', cmdName];
 	if (ops.git) startCommand.push('-g');
+	if (ops.install) startCommand.push('-i');
 
 	tfmonitor.daemon.addDaemon(
 		appName+'.'+cmdName,

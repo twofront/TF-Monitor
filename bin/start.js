@@ -11,10 +11,13 @@ var commandOptions = [];
 var child = null;
 
 var launchWait = null;
-var waitTime = 1.0;
+var waitTime = 4.0;
+
+var fileChange = false;
 
 var ops = stdio.getopt({
-	'git': {key: 'g'}
+	'git': {key: 'g'},
+	'install': {key: 'i'}
 });
 
 var info = tfmonitor.procfile.getCommand(ops.args[0]);
@@ -39,15 +42,28 @@ function spawnApp() {
 function restartApp() {
 	if (launchWait !== null) clearTimeout(launchWait);
 	launchWait = setTimeout(function() {
-		spawnApp();
+		if (fileChange && ops.install) {
+			fileChange = false;
+			console.log('Running npm install.');
+			childProcess.exec('npm install', function(err, stdout, stderr) {
+				console.log('npm stdout: ' + stdout);
+				console.log('npm stderr: ' + stderr);
+				if (err !== null) {
+					console.log('npm exec error: ' + err);
+				}
+				spawnApp();
+			});
+		} else {
+			spawnApp();
+		}
 		// If the app keeps crashing shortly after launch keep doubling
 		// the amount of time before a restart is attempted up to 1024
 		// seconds (~17 minutes).
 		waitTime = waitTime < 1024 ? waitTime*2 : waitTime;
 		launchWait = setTimeout(function() {
-			// The relaunch wait time resets to 1 second if the application
+			// The relaunch wait time resets to 4 second if the application
 			// hasn't crashed for 5 minutes.
-			waitTime = 1.0;
+			waitTime = 4.0;
 			launchWait = null;
 		}, 5*60*1000);
 	}, waitTime*1000);
@@ -64,6 +80,9 @@ function watchApp() {
 			filename.indexOf('.err', filename.length-4) === -1 &&
 			filename.indexOf('.out', filename.length-4) === -1
 		) {
+			console.log('File change detected.');
+			fileChange = true;
+			console.log(child);
 			child.kill('SIGTERM');
 		}
 	});
