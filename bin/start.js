@@ -125,17 +125,6 @@ if (mainCommand === 'node') {
 	//mainCommand = '/usr/local/bin/node';
 }
 commandOptions = command;
-if (ops.install) {
-	npmInstall(function(err, stdout, stderr) {
-		
-		console.log(err);
-		console.log(stdout);
-		console.log(stderr);
-		spawnApp();
-	});
-} else {
-	
-}
 
 if (ops.git) {
 	gitPull(function() {
