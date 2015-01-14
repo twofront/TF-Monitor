@@ -5,7 +5,8 @@ var fs = require('fs');
 var childProcess = require('child_process');
 var tfmonitor = require('../');
 
-var NODE = '/usr/local/bin/node';
+//var NODE = '/usr/local/bin/node';
+var NODE = 'node';
 var TMP = '/tmp/tfmonitor.json';
 var MONITOR = __dirname + '/tfmonitor.js';
 var START = __dirname + '/start.js';
@@ -124,7 +125,7 @@ if (ops.args[0] === 'start') {
 	tfmonitor.daemon.addDaemon(
 		appName+'.'+cmdName,
 		startCommand,
-		function() {
+		function(err) {
 			console.log('Registered "'+cmdName+'" in app "'+appName+'".');
 			console.log('App will start on boot-up.');
 		}

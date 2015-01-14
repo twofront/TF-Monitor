@@ -44,13 +44,7 @@ function restartApp() {
 	launchWait = setTimeout(function() {
 		if (fileChange && ops.install) {
 			fileChange = false;
-			console.log('Running npm install.');
-			childProcess.exec('npm install', function(err, stdout, stderr) {
-				console.log('npm stdout: ' + stdout);
-				console.log('npm stderr: ' + stderr);
-				if (err !== null) {
-					console.log('npm exec error: ' + err);
-				}
+			npmInstall(function() {
 				spawnApp();
 			});
 		} else {
@@ -88,12 +82,18 @@ function watchApp() {
 	});
 }
 
-function gitPull() {
+function npmInstall(callback) {
+	console.log('Running npm install.');
+	childProcess.exec('npm install --unsafe-perm', callback);
+}
+
+function gitPull(callback) {
 	console.log('Pulling from GIT.');
 	childProcess.exec('git pull', function(error, stdout, stderr) {
 		console.log('----------------------------');
 		console.log(stdout);
 		console.log('----------------------------');
+		callback();
 		setTimeout(gitPull, 1000*60*60);
 	});
 }
@@ -122,9 +122,39 @@ var command = info.cmdVal.split(/[\s\t]+/);
 mainCommand = command.shift();
 // On boot we need to pass the full path...
 if (mainCommand === 'node') {
-	mainCommand = '/usr/local/bin/node';
+	//mainCommand = '/usr/local/bin/node';
 }
 commandOptions = command;
-spawnApp();
-watchApp();
-if (ops.git) gitPull();
+if (ops.install) {
+	npmInstall(function(err, stdout, stderr) {
+		
+		console.log(err);
+		console.log(stdout);
+		console.log(stderr);
+		spawnApp();
+	});
+} else {
+	
+}
+
+if (ops.git) {
+	gitPull(function() {
+		if (ops.install) {
+			npmInstall(function() {
+				spawnApp();
+				watchApp();
+			});
+		} else {
+			spawnApp();
+			watchApp();
+		}
+	});
+} else if (ops.install) {
+	npmInstall(function() {
+		spawnApp();
+		watchApp();
+	});
+} else {
+	spawnApp();
+	watchApp();
+}
