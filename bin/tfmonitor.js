@@ -67,6 +67,7 @@ if (ops.args[0] === 'start') {
 	var startCommand = [START, cmdName];
 	if (ops.git) startCommand.push('-g');
 	if (ops.install) startCommand.push('-i');
+	if (ops.log) startCommand.push('-l');
 
 	if (ops.foreground) {
 		var child = childProcess.spawn(
@@ -121,6 +122,7 @@ if (ops.args[0] === 'start') {
 	var startCommand = [NODE, MONITOR, 'start', cmdName];
 	if (ops.git) startCommand.push('-g');
 	if (ops.install) startCommand.push('-i');
+	if (ops.log) startCommand.push('-l');
 
 	tfmonitor.daemon.addDaemon(
 		appName+'.'+cmdName,

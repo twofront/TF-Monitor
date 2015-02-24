@@ -17,7 +17,8 @@ var fileChange = false;
 
 var ops = stdio.getopt({
 	'git': {key: 'g'},
-	'install': {key: 'i'}
+	'install': {key: 'i'},
+	'log': {key: 'l'}
 });
 
 var info = tfmonitor.procfile.getCommand(ops.args[0]);
@@ -30,7 +31,9 @@ function spawnApp() {
 		d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+' '+
 		d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()
 	);
-	child = childProcess.spawn(mainCommand, commandOptions);
+	var out = fs.openSync(ops.log ? 'app.log' : '/dev/null', 'a');
+	var err = fs.openSync(ops.log ? 'app.err' : '/dev/null', 'a');
+	child = childProcess.spawn(mainCommand, commandOptions, {stdio: [ 'ignore', out, err ]});
 	child.on('error', restartApp);
 	child.on('close', restartApp);
 }
@@ -74,9 +77,8 @@ function watchApp() {
 			filename.indexOf('.err', filename.length-4) === -1 &&
 			filename.indexOf('.out', filename.length-4) === -1
 		) {
-			console.log('File change detected.');
+			console.log('File "'+filename+'" change.');
 			fileChange = true;
-			console.log(child);
 			child.kill('SIGTERM');
 		}
 	});
@@ -93,8 +95,10 @@ function gitPull(callback) {
 		console.log('----------------------------');
 		console.log(stdout);
 		console.log('----------------------------');
-		callback();
-		setTimeout(gitPull, 1000*60*60);
+		if (callback !== null) callback();
+		setTimeout(function() {
+			gitPull(null);
+		}, 1000*60*60);
 	});
 }
 
